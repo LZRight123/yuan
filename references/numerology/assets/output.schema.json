@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NumerologyAnalysisOutput",
+  "type": "object",
+  "required": [
+    "核心数字",
+    "性格"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "核心数字": {
+      "type": "object",
+      "required": [
+        "生命路径数",
+        "姓名数",
+        "主导数",
+        "辅助数"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "生命路径数": {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            11,
+            22,
+            33
+          ]
+        },
+        "姓名数": {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            11,
+            22,
+            33
+          ]
+        },
+        "主导数": {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            11,
+            22,
+            33
+          ]
+        },
+        "辅助数": {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            11,
+            22,
+            33
+          ]
+        }
+      }
+    },
+    "性格": {
+      "type": "object",
+      "required": [
+        "生命路径",
+        "姓名映射",
+        "综合"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "生命路径": {
+          "type": "object",
+          "required": [
+            "标签",
+            "符号"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "标签": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "符号": {
+              "type": "string"
+            }
+          }
+        },
+        "姓名映射": {
+          "type": "object",
+          "required": [
+            "标签",
+            "符号"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "标签": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "符号": {
+              "type": "string"
+            }
+          }
+        },
+        "综合": {
+          "type": "object",
+          "required": [
+            "标签",
+            "说明"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "标签": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "说明": {
+              "type": "string",
+              "const": "以内在核心采用生命路径数的符号映射，以外在表达采用姓名数的符号映射"
+            }
+          }
+        }
+      }
+    }
+  }
+}

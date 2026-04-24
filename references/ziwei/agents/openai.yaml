@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ziwei Analysis"
+  short_description: "Structured Ziwei Dou Shu skill for design, chart interpretation, and schema-driven outputs."
+  default_prompt: "Use the ziwei-analysis skill for this 紫微斗数 task."
+policy:
+  allow_implicit_invocation: true

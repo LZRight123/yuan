@@ -1,0 +1,231 @@
+{
+  "skill": {
+    "name": "numerology_analysis",
+    "runtime_name": "numerology-analysis",
+    "type": "agent_skill",
+    "description": "Pure symbolic numerology analysis skill for AI agents such as Claude Code and Codex."
+  },
+  "input": {
+    "name": "",
+    "birthdate": ""
+  },
+  "flow": [
+    "计算",
+    "映射",
+    "输出"
+  ],
+  "rules": [
+    {
+      "id": "validate_input",
+      "type": "validation",
+      "rules": {
+        "name": "必须为非空字符串",
+        "birthdate": "支持 YYYY-MM-DD、YYYY/MM/DD、YYYYMMDD；若格式存在歧义则要求 ISO 日期"
+      }
+    },
+    {
+      "id": "normalize_birthdate",
+      "type": "preprocess",
+      "source": "birthdate",
+      "action": "移除所有非数字字符，得到 normalized_birthdate；结果必须为 8 位数字"
+    },
+    {
+      "id": "reduce_number",
+      "type": "function",
+      "definition": "持续执行各位求和，直到结果为 1-9；若在中途得到 11、22、33 则保留"
+    },
+    {
+      "id": "life_path_number",
+      "type": "calculate",
+      "source": "birthdate",
+      "formula": "生命路径数 = reduce_number(sum(digits(normalized_birthdate)))"
+    },
+    {
+      "id": "normalize_name",
+      "type": "preprocess",
+      "source": "name",
+      "action": "去除首尾空格；忽略空格、连字符、下划线、撇号与常见标点；拉丁字母转为大写；非拉丁字符不做转写"
+    },
+    {
+      "id": "name_mapping_latin",
+      "type": "mapping",
+      "source": "name",
+      "table": {
+        "A": 1,
+        "J": 1,
+        "S": 1,
+        "B": 2,
+        "K": 2,
+        "T": 2,
+        "C": 3,
+        "L": 3,
+        "U": 3,
+        "D": 4,
+        "M": 4,
+        "V": 4,
+        "E": 5,
+        "N": 5,
+        "W": 5,
+        "F": 6,
+        "O": 6,
+        "X": 6,
+        "G": 7,
+        "P": 7,
+        "Y": 7,
+        "H": 8,
+        "Q": 8,
+        "Z": 8,
+        "I": 9,
+        "R": 9
+      }
+    },
+    {
+      "id": "name_mapping_non_latin",
+      "type": "mapping",
+      "source": "name",
+      "rule": "若字符不在 A-Z 中，则取该字符 Unicode 十进制码点，对码点各位数字求和并缩减到 1-9，作为该字符映射值"
+    },
+    {
+      "id": "name_number",
+      "type": "calculate",
+      "source": "name",
+      "formula": "姓名数 = reduce_number(sum(mapped_char_values))"
+    },
+    {
+      "id": "symbolic_personality_map",
+      "type": "mapping",
+      "source": "number",
+      "table": {
+        "1": {
+          "标签": [
+            "独立",
+            "主动",
+            "开创"
+          ],
+          "符号": "起点型"
+        },
+        "2": {
+          "标签": [
+            "协调",
+            "敏感",
+            "合作"
+          ],
+          "符号": "联结型"
+        },
+        "3": {
+          "标签": [
+            "表达",
+            "创意",
+            "社交"
+          ],
+          "符号": "表达型"
+        },
+        "4": {
+          "标签": [
+            "稳定",
+            "秩序",
+            "执行"
+          ],
+          "符号": "结构型"
+        },
+        "5": {
+          "标签": [
+            "变化",
+            "自由",
+            "探索"
+          ],
+          "符号": "变化型"
+        },
+        "6": {
+          "标签": [
+            "责任",
+            "关怀",
+            "和谐"
+          ],
+          "符号": "照护型"
+        },
+        "7": {
+          "标签": [
+            "内省",
+            "分析",
+            "洞察"
+          ],
+          "符号": "思辨型"
+        },
+        "8": {
+          "标签": [
+            "目标",
+            "掌控",
+            "成就"
+          ],
+          "符号": "成就型"
+        },
+        "9": {
+          "标签": [
+            "理想",
+            "包容",
+            "完成"
+          ],
+          "符号": "完成型"
+        },
+        "11": {
+          "标签": [
+            "直觉",
+            "启发",
+            "感召"
+          ],
+          "符号": "启发型"
+        },
+        "22": {
+          "标签": [
+            "建构",
+            "整合",
+            "落地"
+          ],
+          "符号": "建构型"
+        },
+        "33": {
+          "标签": [
+            "奉献",
+            "滋养",
+            "引导"
+          ],
+          "符号": "滋养型"
+        }
+      }
+    },
+    {
+      "id": "compose_output",
+      "type": "output",
+      "rule": "主导数取生命路径数；辅助数取姓名数；性格解释仅引用对应标签与符号"
+    }
+  ],
+  "output": {
+    "核心数字": {
+      "生命路径数": "{{life_path_number}}",
+      "姓名数": "{{name_number}}",
+      "主导数": "{{life_path_number}}",
+      "辅助数": "{{name_number}}"
+    },
+    "性格": {
+      "生命路径": {
+        "标签": "{{symbolic_personality_map[life_path_number].标签}}",
+        "符号": "{{symbolic_personality_map[life_path_number].符号}}"
+      },
+      "姓名映射": {
+        "标签": "{{symbolic_personality_map[name_number].标签}}",
+        "符号": "{{symbolic_personality_map[name_number].符号}}"
+      },
+      "综合": {
+        "标签": "{{unique(symbolic_personality_map[life_path_number].标签 + symbolic_personality_map[name_number].标签)}}",
+        "说明": "以内在核心采用生命路径数的符号映射，以外在表达采用姓名数的符号映射"
+      }
+    }
+  },
+  "constraints": [
+    "纯符号映射",
+    "不做吉凶判断",
+    "不做现实事件预测",
+    "不输出医学、法律、金融结论"
+  ]
+}

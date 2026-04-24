@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "chenggu_analysis output",
+  "type": "object",
+  "properties": {
+    "skill_name": {
+      "type": "string"
+    },
+    "api_name": {
+      "type": "string"
+    },
+    "input_normalized": {
+      "type": "object",
+      "properties": {
+        "calendar_type_used": {
+          "type": "string",
+          "enum": [
+            "gregorian",
+            "lunar",
+            "lunar_components"
+          ]
+        },
+        "year_ganzhi": {
+          "type": "string"
+        },
+        "lunar_month": {
+          "type": "integer"
+        },
+        "lunar_day": {
+          "type": "integer"
+        },
+        "hour_branch": {
+          "type": "string"
+        },
+        "is_leap_month": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "year_ganzhi",
+        "lunar_month",
+        "lunar_day",
+        "hour_branch"
+      ],
+      "additionalProperties": true
+    },
+    "weights": {
+      "type": "object",
+      "properties": {
+        "year_weight_qian": {
+          "type": "integer"
+        },
+        "month_weight_qian": {
+          "type": "integer"
+        },
+        "day_weight_qian": {
+          "type": "integer"
+        },
+        "hour_weight_qian": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year_weight_qian",
+        "month_weight_qian",
+        "day_weight_qian",
+        "hour_weight_qian"
+      ],
+      "additionalProperties": false
+    },
+    "total_weight": {
+      "type": "object",
+      "properties": {
+        "qian": {
+          "type": "integer"
+        },
+        "display": {
+          "type": "string"
+        },
+        "decimal_liang": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "qian",
+        "display",
+        "decimal_liang"
+      ],
+      "additionalProperties": false
+    },
+    "grade": {
+      "type": "string",
+      "enum": [
+        "低",
+        "中",
+        "高"
+      ]
+    },
+    "verse_canonical": {
+      "type": "string"
+    },
+    "analysis": {
+      "type": "object",
+      "properties": {
+        "trajectory_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "career": {
+          "type": "string"
+        },
+        "wealth": {
+          "type": "string"
+        },
+        "marriage": {
+          "type": "string"
+        },
+        "scores": {
+          "type": "object",
+          "properties": {
+            "career": {
+              "type": "integer"
+            },
+            "wealth": {
+              "type": "integer"
+            },
+            "marriage": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "career",
+            "wealth",
+            "marriage"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "trajectory_tags",
+        "career",
+        "wealth",
+        "marriage"
+      ],
+      "additionalProperties": true
+    },
+    "advice": {
+      "type": "string"
+    },
+    "display_zh": {
+      "type": "object"
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "skill_name",
+    "api_name",
+    "input_normalized",
+    "weights",
+    "total_weight",
+    "grade",
+    "verse_canonical",
+    "analysis",
+    "advice",
+    "display_zh",
+    "limitations"
+  ],
+  "additionalProperties": false
+}

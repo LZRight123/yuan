@@ -1,0 +1,6 @@
+interface:
+  display_name: "Numerology Analysis / 数字命理分析"
+  short_description: "Compute life path number and name mapping with pure symbolic rules."
+  default_prompt: "Use the numerology-analysis skill to compute a symbolic numerology profile from the provided name and birthdate, then return the required JSON."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "称骨算命（增强版）"
+  short_description: "固定权重查表 + 51档歌诀 + 结构化事业/财运/婚姻输出"
+  default_prompt: "Use this skill to compute a structured Chenggu analysis from birth input."
+policy:
+  allow_implicit_invocation: true

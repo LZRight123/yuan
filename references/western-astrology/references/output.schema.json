@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AstrologyAnalysisOutput",
+  "type": "object",
+  "required": [
+    "人格",
+    "事业",
+    "情感"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "人格": {
+      "type": "object",
+      "required": [
+        "核心配置",
+        "优势",
+        "挑战",
+        "建议",
+        "证据"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "核心配置": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "优势": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "挑战": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "建议": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "证据": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "事业": {
+      "type": "object",
+      "required": [
+        "事业倾向",
+        "优势",
+        "挑战",
+        "建议",
+        "证据"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "事业倾向": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "优势": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "挑战": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "建议": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "证据": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "情感": {
+      "type": "object",
+      "required": [
+        "关系模式",
+        "优势",
+        "挑战",
+        "建议",
+        "证据"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "关系模式": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "优势": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "挑战": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "建议": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "证据": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

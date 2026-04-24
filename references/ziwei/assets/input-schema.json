@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ZiweiAnalysisRequest",
+  "type": "object",
+  "properties": {
+    "task_mode": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "design",
+        "interpret_chart",
+        "chart_from_birth"
+      ],
+      "default": "auto"
+    },
+    "birth_datetime": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "ISO-like datetime or natural-language birth datetime."
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "calendar_type": {
+      "type": "string",
+      "enum": [
+        "solar",
+        "lunar",
+        "auto"
+      ],
+      "default": "solar"
+    },
+    "timezone": {
+      "type": "string",
+      "default": "Asia/Shanghai"
+    },
+    "latitude": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "default": null
+    },
+    "longitude": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "default": null
+    },
+    "use_true_solar_time": {
+      "type": "boolean",
+      "default": false
+    },
+    "late_zi_hour_rule": {
+      "type": "string",
+      "enum": [
+        "cross_day",
+        "same_day"
+      ],
+      "default": "cross_day"
+    },
+    "school_variant": {
+      "type": "string",
+      "enum": [
+        "traditional_fullbook_v1",
+        "traditional_complete_collection_v1",
+        "custom"
+      ],
+      "default": "traditional_fullbook_v1"
+    },
+    "chart_facts": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Existing chart facts. Prefer this for interpretation mode."
+    },
+    "question_focus": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "output_locale": {
+      "type": "string",
+      "default": "zh-CN"
+    }
+  },
+  "additionalProperties": true
+}

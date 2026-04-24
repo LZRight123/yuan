@@ -1,0 +1,71 @@
+{
+  "input": {
+    "birth_datetime": ""
+  },
+  "context": {
+    "gender": "unknown",
+    "calendar_type": "solar",
+    "timezone": "Asia/Shanghai",
+    "latitude": null,
+    "longitude": null,
+    "use_true_solar_time": false,
+    "late_zi_hour_rule": "cross_day",
+    "school_variant": "traditional_fullbook_v1"
+  },
+  "derived_features": [
+    "solar_datetime",
+    "lunar_datetime",
+    "year_ganzhi",
+    "month_lunar",
+    "day_lunar",
+    "hour_branch",
+    "ming_palace",
+    "shen_palace",
+    "palace_stems_branches",
+    "five_element_bureau",
+    "major_star_positions",
+    "aux_star_positions",
+    "four_transformations",
+    "three_way_four_orth",
+    "opposite_palace_relations",
+    "grand_limit_ranges",
+    "annual_overlays"
+  ],
+  "rules": {
+    "deterministic_rules": [
+      "时间标准化规则",
+      "公历/农历转换规则",
+      "晚子时切日规则",
+      "命宫/身宫计算规则",
+      "十二宫布宫规则",
+      "五行局计算规则",
+      "紫微/天府起星规则",
+      "十四主星排布规则",
+      "辅星排布规则",
+      "四化安星规则",
+      "大限顺逆与起运规则",
+      "流年叠加规则"
+    ],
+    "interpretive_rules": [
+      "星曜本义规则",
+      "宫位语义规则",
+      "星曜落宫解释规则",
+      "三方四正会照规则",
+      "对宫修正规则",
+      "四化增减益规则",
+      "大限/流年触发规则",
+      "冲突信息裁决规则",
+      "置信度评分规则"
+    ]
+  },
+  "decision_flow": [
+    "时间标准化",
+    "历法转换",
+    "排盘",
+    "星曜分析",
+    "宫位解读",
+    "四化叠加",
+    "大限/流年叠加",
+    "生成结论"
+  ]
+}

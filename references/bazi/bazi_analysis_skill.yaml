@@ -1,0 +1,512 @@
+name: bazi_analysis
+version: 1.0.0
+description: 基于四柱八字的规则化分析 Skill，包含排盘、五行统计、十神、旺衰、格局、神煞、大运与流年。
+input_schema:
+  birth_datetime:
+    type: string
+    format: date-time
+    required: true
+    description: ISO-8601 格式，必须包含时区，例如 1992-08-14T21:30:00+08:00
+  gender:
+    type: string
+    required: true
+    enum:
+    - male
+    - female
+output_schema:
+  chart:
+    type: object
+    properties:
+      four_pillars:
+        type: object
+      hidden_stems:
+        type: object
+      day_master:
+        type: object
+      ten_gods:
+        type: object
+      solar_terms:
+        type: object
+      shensha:
+        type: object
+      dayun:
+        type: object
+      liunian:
+        type: array
+  analysis:
+    type: object
+    properties:
+      five_elements_score:
+        type: object
+      five_elements_status:
+        type: object
+      strength:
+        type: object
+      structure:
+        type: object
+      favorable:
+        type: object
+      personality:
+        type: object
+      career:
+        type: object
+      wealth:
+        type: object
+      marriage:
+        type: object
+      advice:
+        type: object
+  template_output:
+    type: object
+calculation_basis:
+  calendar_basis: 公历 + 时区
+  birth_datetime_format: ISO-8601，必须包含时区
+  timezone_rule: 按输入时区计算，不做真太阳时修正
+  year_boundary: 立春瞬时
+  month_boundary: 12节瞬时，不按农历月
+  day_boundary: 23:00 子初换日
+  hour_boundary: 每2小时一个地支时辰
+  strength_model: 月令 + 五行加权计分
+  structure_scope:
+  - 正格
+  - 从格
+  shensha_scope:
+  - 桃花
+  - 天乙贵人
+constants:
+  stems:
+  - 甲
+  - 乙
+  - 丙
+  - 丁
+  - 戊
+  - 己
+  - 庚
+  - 辛
+  - 壬
+  - 癸
+  branches:
+  - 子
+  - 丑
+  - 寅
+  - 卯
+  - 辰
+  - 巳
+  - 午
+  - 未
+  - 申
+  - 酉
+  - 戌
+  - 亥
+  stem_meta:
+    甲:
+      element: 木
+      polarity: 阳
+      index: 1
+    乙:
+      element: 木
+      polarity: 阴
+      index: 2
+    丙:
+      element: 火
+      polarity: 阳
+      index: 3
+    丁:
+      element: 火
+      polarity: 阴
+      index: 4
+    戊:
+      element: 土
+      polarity: 阳
+      index: 5
+    己:
+      element: 土
+      polarity: 阴
+      index: 6
+    庚:
+      element: 金
+      polarity: 阳
+      index: 7
+    辛:
+      element: 金
+      polarity: 阴
+      index: 8
+    壬:
+      element: 水
+      polarity: 阳
+      index: 9
+    癸:
+      element: 水
+      polarity: 阴
+      index: 10
+  branch_primary_element:
+    子: 水
+    丑: 土
+    寅: 木
+    卯: 木
+    辰: 土
+    巳: 火
+    午: 火
+    未: 土
+    申: 金
+    酉: 金
+    戌: 土
+    亥: 水
+  branch_hidden_stems:
+    子:
+    - 癸
+    丑:
+    - 己
+    - 癸
+    - 辛
+    寅:
+    - 甲
+    - 丙
+    - 戊
+    卯:
+    - 乙
+    辰:
+    - 戊
+    - 乙
+    - 癸
+    巳:
+    - 丙
+    - 戊
+    - 庚
+    午:
+    - 丁
+    - 己
+    未:
+    - 己
+    - 丁
+    - 乙
+    申:
+    - 庚
+    - 壬
+    - 戊
+    酉:
+    - 辛
+    戌:
+    - 戊
+    - 辛
+    - 丁
+    亥:
+    - 壬
+    - 甲
+  five_element_generate:
+    木: 火
+    火: 土
+    土: 金
+    金: 水
+    水: 木
+  five_element_control:
+    木: 土
+    土: 水
+    水: 火
+    火: 金
+    金: 木
+  jie_rules:
+  - name: 立春
+    angle: 315.0
+    month_order: 1
+    branch: 寅
+  - name: 惊蛰
+    angle: 345.0
+    month_order: 2
+    branch: 卯
+  - name: 清明
+    angle: 15.0
+    month_order: 3
+    branch: 辰
+  - name: 立夏
+    angle: 45.0
+    month_order: 4
+    branch: 巳
+  - name: 芒种
+    angle: 75.0
+    month_order: 5
+    branch: 午
+  - name: 小暑
+    angle: 105.0
+    month_order: 6
+    branch: 未
+  - name: 立秋
+    angle: 135.0
+    month_order: 7
+    branch: 申
+  - name: 白露
+    angle: 165.0
+    month_order: 8
+    branch: 酉
+  - name: 寒露
+    angle: 195.0
+    month_order: 9
+    branch: 戌
+  - name: 立冬
+    angle: 225.0
+    month_order: 10
+    branch: 亥
+  - name: 大雪
+    angle: 255.0
+    month_order: 11
+    branch: 子
+  - name: 小寒
+    angle: 285.0
+    month_order: 12
+    branch: 丑
+  hidden_stem_weights:
+    1_hidden:
+    - 1.0
+    2_hidden:
+    - 0.7
+    - 0.3
+    3_hidden:
+    - 0.7
+    - 0.2
+    - 0.1
+  peach_map:
+    申: 酉
+    子: 酉
+    辰: 酉
+    寅: 卯
+    午: 卯
+    戌: 卯
+    亥: 子
+    卯: 子
+    未: 子
+    巳: 午
+    酉: 午
+    丑: 午
+  tianyi_map:
+    甲:
+    - 丑
+    - 未
+    戊:
+    - 丑
+    - 未
+    庚:
+    - 丑
+    - 未
+    乙:
+    - 子
+    - 申
+    己:
+    - 子
+    - 申
+    丙:
+    - 亥
+    - 酉
+    丁:
+    - 亥
+    - 酉
+    辛:
+    - 寅
+    - 午
+    壬:
+    - 卯
+    - 巳
+    癸:
+    - 卯
+    - 巳
+derived_features:
+- four_pillars
+- hidden_stems
+- day_master
+- five_elements_score
+- five_elements_status
+- ten_gods_visible
+- ten_gods_hidden
+- ten_gods_weighted_score
+- strength
+- structure
+- shensha
+- dayun
+- liunian
+rules:
+  four_pillars:
+    year_pillar:
+      rule: birth_datetime >= 当年立春瞬时 -> gz_year = 公历年，否则 gz_year = 公历年 - 1
+      formula:
+        year_stem_index: ((gz_year - 4) mod 10) + 1
+        year_branch_index: ((gz_year - 4) mod 12) + 1
+    month_pillar:
+      rule: 按 12 节切月；寅月从立春开始，卯月从惊蛰开始，依次类推
+      formula:
+        month_order: 由当前太阳黄经所在节令区间确定，寅=1 ... 丑=12
+        yin_month_start_stem_index: ((2 * year_stem_index) mod 10) + 1
+        month_stem_index: ((yin_month_start_stem_index + month_order - 2) mod 10)
+          + 1
+    day_pillar:
+      rule: 23:00 子初换日
+      formula:
+        jdn: Gregorian JDN
+        day_stem_index: ((JDN - 1) mod 10) + 1
+        day_branch_index: ((JDN + 1) mod 12) + 1
+    hour_pillar:
+      rule: 时支按每 2 小时一个时辰，时干按五鼠遁
+      formula:
+        hour_branch_index: floor(((hour + 1) mod 24) / 2) + 1
+        zi_hour_start_stem_index: (((day_stem_index - 1) mod 5) * 2) + 1
+        hour_stem_index: ((zi_hour_start_stem_index + hour_branch_index - 2) mod 10)
+          + 1
+  five_elements_scoring:
+    visible_stems: 年干、月干、日干、时干各计 1.0
+    hidden_stems: 地支藏干按 1/2/3 藏干分别加权 [1.0] / [0.7,0.3] / [0.7,0.2,0.1]
+    status_thresholds:
+      偏缺: score < 1.0
+      偏弱: 1.0 <= score < 1.5
+      平衡: 1.5 <= score < 2.5
+      偏旺: 2.5 <= score < 3.0
+      过旺: score >= 3.0
+  ten_gods:
+    core_rule: 以日主为中心，先定五行关系，再看阴阳同异
+    mapping:
+      same:
+        same_polarity: 比肩
+        different_polarity: 劫财
+      output:
+        same_polarity: 食神
+        different_polarity: 伤官
+      wealth:
+        same_polarity: 偏财
+        different_polarity: 正财
+      authority:
+        same_polarity: 七杀
+        different_polarity: 正官
+      resource:
+        same_polarity: 偏印
+        different_polarity: 正印
+    scoring: 年干、月干、时干按 1.0；四支藏干按藏干加权记分
+  strength:
+    components:
+      same_score: score[日主五行]
+      resource_score: score[生我五行]
+      output_score: score[我生五行]
+      wealth_score: score[我克五行]
+      authority_score: score[克我五行]
+    month_bonus:
+      same: 1.5
+      resource: 1.2
+      output: -0.8
+      wealth: -1.0
+      authority: -1.2
+    formula:
+      support_total: same_score + resource_score + max(month_bonus, 0)
+      drain_total: output_score + wealth_score + authority_score + max(-month_bonus,
+        0)
+      strength_ratio: support_total / (support_total + drain_total)
+    level_thresholds:
+      强: ratio >= 0.68
+      偏强: 0.58 <= ratio < 0.68
+      中和: 0.42 <= ratio < 0.58
+      偏弱: 0.32 <= ratio < 0.42
+      弱: ratio < 0.32
+  structure:
+    support_ratio_base: (same_score + resource_score) / base_total
+    visible_support_count: 年干/月干/时干中，元素属于[同我,生我]的数量
+    root_support_count: 四支中包含[同我,生我]藏干的支数
+    judge:
+    - 强 && support_ratio_base >= 0.70 && month_bonus > 0 && (output+wealth+authority)
+      <= 2.0 -> 从格/从旺
+    - 弱 && support_ratio_base <= 0.25 && month_bonus < 0 && visible_support_count
+      == 0 && root_support_count == 0 -> 从格/从儿|从财|从官杀
+    - 其他 -> 正格/扶抑正格
+  shensha:
+    taohua: 按年支与日支查桃花，任一命中即算
+    tianyi: 按日干查天乙贵人
+  dayun_liunian:
+    direction_rule: 阳男阴女顺，阴男阳女逆
+    start_rule:
+      顺排: 出生时刻到下一个节的时间差
+      逆排: 出生时刻到上一个节的时间差
+      decimal_years: delta_hours / 72
+    dayun_rule: 以月柱为基准，顺/逆移一个 60 甲子位为第一步大运，之后每 10 年移一位
+    liunian_rule: 按立春切换年柱；若以流年标签输出，则年份 y 的流年柱直接按 ((y-4)%10, (y-4)%12) 计算
+decision_flow:
+- 解析输入时间
+- 计算节气边界
+- 排四柱
+- 展开地支藏干
+- 提取日主
+- 统计五行分数
+- 计算十神
+- 计算旺衰
+- 识别格局
+- 识别神煞
+- 推算大运/流年
+- 按模板生成分析
+output_template:
+  命盘:
+    四柱:
+      年柱: ''
+      月柱: ''
+      日柱: ''
+      时柱: ''
+    藏干: {}
+    日主:
+      天干: ''
+      五行: ''
+      阴阳: ''
+    十神:
+      天干十神: {}
+      地支藏干十神: {}
+      十神计分: {}
+    神煞:
+      桃花: {}
+      天乙贵人: {}
+    大运: {}
+    流年: []
+  五行分析:
+    五行得分:
+      木: 0
+      火: 0
+      土: 0
+      金: 0
+      水: 0
+    五行状态: {}
+    旺衰: {}
+    格局: {}
+    喜忌:
+      favorable_categories: []
+      unfavorable_categories: []
+      favorable_elements: []
+      unfavorable_elements: []
+  性格分析:
+    dominant_star: ''
+    secondary_star: ''
+    tags: []
+    summary: ''
+  事业:
+    career_axis: []
+    risk_points: []
+    summary: ''
+  财运:
+    wealth_mode: ''
+    risk_points: []
+    summary: ''
+  婚姻:
+    relationship_star: ''
+    taohua_effect: ''
+    risk_points: []
+    summary: ''
+  建议:
+    职业建议: []
+    关系建议: []
+    阶段建议: []
+limitations:
+  deterministic_parts:
+  - 节气换算
+  - 四柱排盘
+  - 五行映射
+  - 十神计算
+  - 桃花/天乙贵人
+  - 大运顺逆与起运
+  experience_parts:
+  - 旺衰阈值权重
+  - 正格/从格工程化判定
+  - 性格/事业/财运/婚姻映射文案
+  uncertainty_sources:
+  - 未采用真太阳时
+  - 未纳入不同流派的细分格局体系
+  - 旺衰模型做了工程化简化
+  - 未纳入刑冲合害、调候、纳音等扩展规则

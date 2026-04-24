@@ -1,0 +1,6 @@
+interface:
+  display_name: "Astrology Analysis"
+  short_description: "Deterministic natal-chart calculation plus rule-based interpretation."
+  default_prompt: "Compute and interpret a Western tropical natal chart from birth datetime and normalized location. Return Chinese JSON with 人格 / 事业 / 情感."
+policy:
+  allow_implicit_invocation: true

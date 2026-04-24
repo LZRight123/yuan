@@ -1,0 +1,43 @@
+{
+  "name": "ziwei_analysis",
+  "version": "1.0.0",
+  "principle": {
+    "charting": "deterministic",
+    "interpretation": "heuristic"
+  },
+  "input_schema": {
+    "birth_datetime": "string"
+  },
+  "recommended_context": {
+    "gender": "unknown",
+    "calendar_type": "solar",
+    "timezone": "Asia/Shanghai",
+    "latitude": null,
+    "longitude": null,
+    "use_true_solar_time": false,
+    "late_zi_hour_rule": "cross_day",
+    "school_variant": "traditional_fullbook_v1"
+  },
+  "pipeline": [
+    "normalize_datetime",
+    "convert_calendar",
+    "build_palaces",
+    "place_major_stars",
+    "place_aux_stars",
+    "apply_four_transformations",
+    "build_grand_limit_and_annual_flow",
+    "interpret_by_palace_and_theme",
+    "render_structured_output"
+  ],
+  "output_template": {
+    "命宫": {},
+    "事业宫": {},
+    "财帛宫": {},
+    "婚姻": {},
+    "综合分析": {}
+  },
+  "constraints": [
+    "排盘规则确定",
+    "解读部分为经验推断"
+  ]
+}

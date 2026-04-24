@@ -1,0 +1,6 @@
+interface:
+  display_name: "Vedic Analysis"
+  short_description: "Nakshatra + Vimshottari Dasha 的传统吠陀占星分析"
+  default_prompt: "请用 vedic-analysis 分析以下出生资料："
+policy:
+  allow_implicit_invocation: true

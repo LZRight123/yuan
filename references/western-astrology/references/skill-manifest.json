@@ -1,0 +1,23 @@
+{
+  "logical_name": "astrology_analysis",
+  "cross_tool_slug": "astrology-analysis",
+  "version": "1.0.0",
+  "title": "Astrology Analysis",
+  "description": "Western astrology natal-chart skill with deterministic chart computation and heuristic interpretation.",
+  "defaults": {
+    "zodiac_type": "Tropical",
+    "house_system": "Placidus",
+    "language": "zh-CN"
+  },
+  "derived_features": [
+    "planet_positions",
+    "houses",
+    "planet_house_placement",
+    "aspects"
+  ],
+  "output_top_level_keys": [
+    "人格",
+    "事业",
+    "情感"
+  ]
+}

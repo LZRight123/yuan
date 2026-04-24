@@ -1,0 +1,1502 @@
+{
+  "meta": {
+    "name": "chenggu_analysis",
+    "version": "1.0-standard-51qian",
+    "selected_standard": {
+      "label": "民间通行标准版（51档）",
+      "reason": "年/月/日/时权重表闭合后，最小可得21钱（2两1钱），最大可得71钱（7两1钱）；适合作为统一可计算标准。",
+      "not_included": [
+        "附加72钱条目",
+        "男女分版断语"
+      ],
+      "notes": [
+        "年骨重以六十甲子作为查表键，不直接依赖网页里可能带误差的公历示例年份。",
+        "内部统一用“钱”整数存储，展示时再格式化为“两/钱”，避免浮点误差。"
+      ]
+    },
+    "input_schema": {
+      "birth_datetime": "string",
+      "timezone": "string (optional, default Asia/Shanghai)",
+      "calendar_type": "gregorian|lunar (optional, default gregorian)",
+      "gender": "optional, reserved for future male/female verse extension"
+    },
+    "decision_flow": [
+      "解析出生时间",
+      "必要时将公历转农历",
+      "应用称骨边界规则（夜子时与闰月）",
+      "查年/月/日/时骨重",
+      "求和得到 total_qian",
+      "匹配歌诀",
+      "执行关键词+人工覆写的结构化标签提取",
+      "生成事业/财运/婚姻/建议输出"
+    ],
+    "derived_features": [
+      "year_ganzhi",
+      "lunar_month",
+      "lunar_day",
+      "hour_branch",
+      "year_weight_qian",
+      "month_weight_qian",
+      "day_weight_qian",
+      "hour_weight_qian",
+      "total_qian",
+      "total_display",
+      "grade",
+      "trajectory_tags"
+    ]
+  },
+  "lookup_tables": {
+    "year_weight_qian_by_ganzhi": {
+      "甲子": 12,
+      "丙子": 16,
+      "戊子": 15,
+      "庚子": 7,
+      "壬子": 5,
+      "乙丑": 9,
+      "丁丑": 8,
+      "己丑": 7,
+      "辛丑": 7,
+      "癸丑": 7,
+      "丙寅": 6,
+      "戊寅": 8,
+      "庚寅": 9,
+      "壬寅": 9,
+      "甲寅": 12,
+      "丁卯": 7,
+      "己卯": 19,
+      "辛卯": 12,
+      "癸卯": 12,
+      "乙卯": 8,
+      "戊辰": 12,
+      "庚辰": 12,
+      "壬辰": 10,
+      "甲辰": 8,
+      "丙辰": 8,
+      "己巳": 5,
+      "辛巳": 6,
+      "癸巳": 7,
+      "乙巳": 7,
+      "丁巳": 6,
+      "庚午": 9,
+      "壬午": 8,
+      "甲午": 15,
+      "丙午": 13,
+      "戊午": 19,
+      "辛未": 8,
+      "癸未": 7,
+      "乙未": 6,
+      "丁未": 5,
+      "己未": 6,
+      "壬申": 7,
+      "甲申": 5,
+      "丙申": 5,
+      "戊申": 14,
+      "庚申": 8,
+      "癸酉": 8,
+      "乙酉": 15,
+      "丁酉": 14,
+      "己酉": 5,
+      "辛酉": 16,
+      "甲戌": 15,
+      "丙戌": 6,
+      "戊戌": 14,
+      "庚戌": 9,
+      "壬戌": 10,
+      "乙亥": 9,
+      "丁亥": 16,
+      "己亥": 9,
+      "辛亥": 17,
+      "癸亥": 6
+    },
+    "month_weight_qian": {
+      "1": 6,
+      "2": 7,
+      "3": 18,
+      "4": 9,
+      "5": 5,
+      "6": 16,
+      "7": 9,
+      "8": 15,
+      "9": 18,
+      "10": 8,
+      "11": 9,
+      "12": 5
+    },
+    "day_weight_qian": {
+      "1": 5,
+      "2": 10,
+      "3": 8,
+      "4": 15,
+      "5": 16,
+      "6": 15,
+      "7": 8,
+      "8": 16,
+      "9": 8,
+      "10": 16,
+      "11": 9,
+      "12": 17,
+      "13": 8,
+      "14": 17,
+      "15": 10,
+      "16": 8,
+      "17": 9,
+      "18": 18,
+      "19": 5,
+      "20": 15,
+      "21": 10,
+      "22": 9,
+      "23": 8,
+      "24": 9,
+      "25": 15,
+      "26": 18,
+      "27": 7,
+      "28": 8,
+      "29": 16,
+      "30": 6
+    },
+    "hour_weight_qian": {
+      "子": 16,
+      "丑": 6,
+      "寅": 7,
+      "卯": 10,
+      "辰": 9,
+      "巳": 16,
+      "午": 10,
+      "未": 8,
+      "申": 8,
+      "酉": 9,
+      "戌": 6,
+      "亥": 6
+    }
+  },
+  "classification_rules": {
+    "grade": {
+      "low": {
+        "min_qian": 21,
+        "max_qian": 37,
+        "label": "低"
+      },
+      "mid": {
+        "min_qian": 38,
+        "max_qian": 54,
+        "label": "中"
+      },
+      "high": {
+        "min_qian": 55,
+        "max_qian": 71,
+        "label": "高"
+      }
+    },
+    "weight_index_formula": "round((total_qian - 21) / 50 * 100)",
+    "notes": [
+      "这不是概率分位，只是把标准版范围线性映射到0~100，便于前端展示。"
+    ]
+  },
+  "semantic_extractor": {
+    "storage_unit": "qian_integer",
+    "keyword_rules": {
+      "career_positive": [
+        "功名",
+        "名利",
+        "立业",
+        "金榜",
+        "甲第",
+        "红袍",
+        "紫袍",
+        "为官",
+        "公侯",
+        "卿相",
+        "高科",
+        "成家",
+        "贵人",
+        "大器成",
+        "天下扬"
+      ],
+      "career_negative": [
+        "事难成",
+        "难谋",
+        "事不成",
+        "尽皆空",
+        "运不通",
+        "蹉跎",
+        "劳碌",
+        "奔波",
+        "苦中求",
+        "不成",
+        "孤行"
+      ],
+      "wealth_positive": [
+        "财",
+        "禄",
+        "富",
+        "贵",
+        "丰盈",
+        "荣华",
+        "衣食旺",
+        "衣食自然",
+        "衣禄",
+        "财源",
+        "福",
+        "田园",
+        "安康",
+        "满堂春",
+        "家业",
+        "福翁"
+      ],
+      "wealth_negative": [
+        "穷",
+        "困苦",
+        "福禄无",
+        "祖业微",
+        "冰炭",
+        "飘蓬",
+        "难如意",
+        "无靠",
+        "苦",
+        "乞",
+        "行乞",
+        "梦中"
+      ],
+      "marriage_positive": [
+        "妻荣子贵",
+        "子贵",
+        "六亲皆如意",
+        "骨肉扶持",
+        "妻荣"
+      ],
+      "marriage_negative": [
+        "妻儿兄弟应难许",
+        "难养男和女",
+        "骨肉扶持也不多",
+        "六亲骨肉皆无靠",
+        "弟兄少力",
+        "无靠",
+        "孤行"
+      ]
+    },
+    "trajectory_tags": {
+      "early_hardship": [
+        "初年",
+        "早年",
+        "前面风霜",
+        "未曾亨",
+        "运蹇",
+        "蹉跎",
+        "苦中求",
+        "劳劳",
+        "忙忙"
+      ],
+      "midlate_better": [
+        "中年",
+        "老来",
+        "晚来",
+        "晚景",
+        "后来",
+        "末年",
+        "后成",
+        "享安康",
+        "源源至"
+      ],
+      "mobility": [
+        "离祖",
+        "出门",
+        "他乡",
+        "移居",
+        "改姓",
+        "出姓",
+        "移徒"
+      ],
+      "scholar_official": [
+        "金榜",
+        "甲第",
+        "红袍",
+        "紫袍",
+        "为官",
+        "公侯",
+        "卿相",
+        "雁塔",
+        "高科"
+      ],
+      "self_made": [
+        "自成",
+        "独自成家",
+        "独自营谋",
+        "自主张",
+        "独马单枪"
+      ],
+      "family_support_weak": [
+        "六亲",
+        "骨肉皆无靠",
+        "弟兄少力",
+        "兄弟六亲皆无靠",
+        "祖业微",
+        "祖基",
+        "祖业"
+      ],
+      "religious_path": [
+        "僧道",
+        "出家",
+        "弥陀"
+      ]
+    },
+    "manual_domain_overrides": {
+      "34": {
+        "career": "宗教/清修路径更强，常规仕途并非主轴",
+        "wealth": "衣禄不绝但偏清淡",
+        "marriage": "不利常规婚配，宜视为婚缘偏弱"
+      },
+      "38": {
+        "career": "学业/名望上扬，约中年后显达",
+        "wealth": "名望强于即时财聚",
+        "marriage": "歌诀未直接点婚姻，按中性处理"
+      },
+      "45": {
+        "career": "名利可求但过程辛苦反复",
+        "wealth": "先难后平，守成优于冒进",
+        "marriage": "婚育与家庭支持偏弱"
+      },
+      "47": {
+        "career": "中晚年走强，整体偏稳",
+        "wealth": "财源较旺",
+        "marriage": "妻荣子贵，婚家表现佳"
+      },
+      "48": {
+        "career": "早年受阻，晚成型",
+        "wealth": "前弱后稳",
+        "marriage": "歌诀未直接点婚姻，按中性偏弱处理"
+      },
+      "58": {
+        "career": "科名/体制路径极强",
+        "wealth": "名利双全",
+        "marriage": "歌诀未直接点婚姻，按中性处理"
+      },
+      "60": {
+        "career": "科名与功业高度突出",
+        "wealth": "田产与财帛俱丰",
+        "marriage": "歌诀未直接点婚姻，按中性处理"
+      },
+      "62": {
+        "career": "仕途/显亲宗表现很强",
+        "wealth": "富贵显赫",
+        "marriage": "歌诀未直接点婚姻，按中性处理"
+      },
+      "64": {
+        "career": "威权极盛，名位高",
+        "wealth": "荣华富贵极强",
+        "marriage": "歌诀未直接点婚姻，按中性处理"
+      },
+      "65": {
+        "career": "位高权重，影响力大",
+        "wealth": "富贵顶级",
+        "marriage": "歌诀未直接点婚姻，按中性处理"
+      },
+      "71": {
+        "career": "公侯卿相级的极高成就象征",
+        "wealth": "极品荣华",
+        "marriage": "歌诀未直接点婚姻，按中性偏吉处理"
+      }
+    },
+    "domain_scoring": {
+      "formula": "score = positive_hits - negative_hits",
+      "mapping": {
+        "<=-2": "偏弱",
+        "-1": "略弱",
+        "0": "中性",
+        "1": "偏佳",
+        ">=2": "很强"
+      },
+      "fallback": "若婚姻无显著词，则输出“中性/歌诀未明示”。"
+    }
+  },
+  "verse_profiles": {
+    "21": {
+      "total_qian": 21,
+      "total_display": "二两一钱",
+      "total_liang_decimal": 2.1,
+      "grade": "低",
+      "verse_canonical": "短命非业谓大空，平生灾难事重重。凶祸频临陷逆境，终世困苦事不成。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "偏弱",
+        "wealth_level": "偏弱",
+        "marriage_level": "中性",
+        "scores": {
+          "career": -2,
+          "wealth": -2,
+          "marriage": 0
+        }
+      }
+    },
+    "22": {
+      "total_qian": 22,
+      "total_display": "二两二钱",
+      "total_liang_decimal": 2.2,
+      "grade": "低",
+      "verse_canonical": "身寒骨冷苦伶仃，此命推来行乞人。劳劳碌碌无度日，终年打拱过平生。",
+      "structured": {
+        "trajectory_tags": [
+          "early_hardship"
+        ],
+        "career_level": "略弱",
+        "wealth_level": "偏弱",
+        "marriage_level": "中性",
+        "scores": {
+          "career": -1,
+          "wealth": -3,
+          "marriage": 0
+        }
+      }
+    },
+    "23": {
+      "total_qian": 23,
+      "total_display": "二两三钱",
+      "total_liang_decimal": 2.3,
+      "grade": "低",
+      "verse_canonical": "此命推来骨格轻，求谋作事事难成。妻儿兄弟应难许，别处他乡作散人。",
+      "structured": {
+        "trajectory_tags": [
+          "mobility"
+        ],
+        "career_level": "略弱",
+        "wealth_level": "中性",
+        "marriage_level": "略弱",
+        "scores": {
+          "career": -1,
+          "wealth": 0,
+          "marriage": -1
+        }
+      }
+    },
+    "24": {
+      "total_qian": 24,
+      "total_display": "二两四钱",
+      "total_liang_decimal": 2.4,
+      "grade": "低",
+      "verse_canonical": "此命推来福禄无，门庭困苦总难荣。六亲骨肉皆无靠，流浪他乡作老翁。",
+      "structured": {
+        "trajectory_tags": [
+          "mobility",
+          "family_support_weak"
+        ],
+        "career_level": "中性",
+        "wealth_level": "偏弱",
+        "marriage_level": "偏弱",
+        "scores": {
+          "career": 0,
+          "wealth": -2,
+          "marriage": -2
+        }
+      }
+    },
+    "25": {
+      "total_qian": 25,
+      "total_display": "二两五钱",
+      "total_liang_decimal": 2.5,
+      "grade": "低",
+      "verse_canonical": "此命推来祖业微，门庭营度似稀奇。六亲骨肉如冰炭，一世勤劳自把持。",
+      "structured": {
+        "trajectory_tags": [
+          "family_support_weak"
+        ],
+        "career_level": "中性",
+        "wealth_level": "偏弱",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": -2,
+          "marriage": 0
+        }
+      }
+    },
+    "26": {
+      "total_qian": 26,
+      "total_display": "二两六钱",
+      "total_liang_decimal": 2.6,
+      "grade": "低",
+      "verse_canonical": "平生衣禄苦中求，独自营谋事不休。离祖出门宜早计，晚来衣禄自无休。",
+      "structured": {
+        "trajectory_tags": [
+          "early_hardship",
+          "midlate_better",
+          "mobility",
+          "self_made"
+        ],
+        "career_level": "略弱",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": -1,
+          "wealth": 3,
+          "marriage": 0
+        }
+      }
+    },
+    "27": {
+      "total_qian": 27,
+      "total_display": "二两七钱",
+      "total_liang_decimal": 2.7,
+      "grade": "低",
+      "verse_canonical": "一生作事少商量，难靠祖宗作主张。独马单枪空做去，早年晚岁总无长。",
+      "structured": {
+        "trajectory_tags": [
+          "early_hardship",
+          "self_made"
+        ],
+        "career_level": "中性",
+        "wealth_level": "中性",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 0,
+          "marriage": 0
+        }
+      }
+    },
+    "28": {
+      "total_qian": 28,
+      "total_display": "二两八钱",
+      "total_liang_decimal": 2.8,
+      "grade": "低",
+      "verse_canonical": "一生行事似飘蓬，祖宗产业在梦中。若不过房改名姓，也当移徒二三通。",
+      "structured": {
+        "trajectory_tags": [
+          "mobility"
+        ],
+        "career_level": "中性",
+        "wealth_level": "偏弱",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": -2,
+          "marriage": 0
+        }
+      }
+    },
+    "29": {
+      "total_qian": 29,
+      "total_display": "二两九钱",
+      "total_liang_decimal": 2.9,
+      "grade": "低",
+      "verse_canonical": "初年运限未曾亨，纵有功名在后成。须过四旬才可立，移居改姓始为良。",
+      "structured": {
+        "trajectory_tags": [
+          "early_hardship",
+          "midlate_better",
+          "mobility"
+        ],
+        "career_level": "偏佳",
+        "wealth_level": "中性",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 1,
+          "wealth": 0,
+          "marriage": 0
+        }
+      }
+    },
+    "30": {
+      "total_qian": 30,
+      "total_display": "三两",
+      "total_liang_decimal": 3.0,
+      "grade": "低",
+      "verse_canonical": "劳劳碌碌苦中求，东奔西走何日休。若使终身勤与俭，老来稍可免忧愁。",
+      "structured": {
+        "trajectory_tags": [
+          "early_hardship",
+          "midlate_better"
+        ],
+        "career_level": "偏弱",
+        "wealth_level": "略弱",
+        "marriage_level": "中性",
+        "scores": {
+          "career": -2,
+          "wealth": -1,
+          "marriage": 0
+        }
+      }
+    },
+    "31": {
+      "total_qian": 31,
+      "total_display": "三两一钱",
+      "total_liang_decimal": 3.1,
+      "grade": "低",
+      "verse_canonical": "忙忙碌碌苦中求，何日云开见日头。难得祖基家可立，中年衣食渐无忧。",
+      "structured": {
+        "trajectory_tags": [
+          "early_hardship",
+          "midlate_better",
+          "family_support_weak"
+        ],
+        "career_level": "略弱",
+        "wealth_level": "略弱",
+        "marriage_level": "中性",
+        "scores": {
+          "career": -1,
+          "wealth": -1,
+          "marriage": 0
+        }
+      }
+    },
+    "32": {
+      "total_qian": 32,
+      "total_display": "三两二钱",
+      "total_liang_decimal": 3.2,
+      "grade": "低",
+      "verse_canonical": "初年运蹇事难谋，渐有财源如水流。到得中年衣食旺，那时名利一齐收。",
+      "structured": {
+        "trajectory_tags": [
+          "early_hardship",
+          "midlate_better"
+        ],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 3,
+          "marriage": 0
+        }
+      }
+    },
+    "33": {
+      "total_qian": 33,
+      "total_display": "三两三钱",
+      "total_liang_decimal": 3.3,
+      "grade": "低",
+      "verse_canonical": "早年做事事难成，百年勤劳枉费心。半世自如流水去，后来运到始得金。",
+      "structured": {
+        "trajectory_tags": [
+          "early_hardship",
+          "midlate_better"
+        ],
+        "career_level": "略弱",
+        "wealth_level": "中性",
+        "marriage_level": "中性",
+        "scores": {
+          "career": -1,
+          "wealth": 0,
+          "marriage": 0
+        }
+      }
+    },
+    "34": {
+      "total_qian": 34,
+      "total_display": "三两四钱",
+      "total_liang_decimal": 3.4,
+      "grade": "低",
+      "verse_canonical": "此命福气果如何，僧道门中衣禄多。离祖出家方为妙，朝晚拜佛念弥陀。",
+      "structured": {
+        "trajectory_tags": [
+          "mobility",
+          "religious_path"
+        ],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 3,
+          "marriage": 0
+        },
+        "manual_override_summary": {
+          "career": "宗教/清修路径更强，常规仕途并非主轴",
+          "wealth": "衣禄不绝但偏清淡",
+          "marriage": "不利常规婚配，宜视为婚缘偏弱"
+        }
+      }
+    },
+    "35": {
+      "total_qian": 35,
+      "total_display": "三两五钱",
+      "total_liang_decimal": 3.5,
+      "grade": "低",
+      "verse_canonical": "生平福量不周全，祖业根基觉少传。营事生涯宜守旧，时来衣食胜从前。",
+      "structured": {
+        "trajectory_tags": [
+          "family_support_weak"
+        ],
+        "career_level": "中性",
+        "wealth_level": "偏佳",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 1,
+          "marriage": 0
+        }
+      }
+    },
+    "36": {
+      "total_qian": 36,
+      "total_display": "三两六钱",
+      "total_liang_decimal": 3.6,
+      "grade": "低",
+      "verse_canonical": "不须劳碌过平生，独自成家福不轻。早有福星常照命，任君行去百般成。",
+      "structured": {
+        "trajectory_tags": [
+          "self_made"
+        ],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 2,
+          "marriage": 0
+        }
+      }
+    },
+    "37": {
+      "total_qian": 37,
+      "total_display": "三两七钱",
+      "total_liang_decimal": 3.7,
+      "grade": "低",
+      "verse_canonical": "此命般般事不成，弟兄少力自孤行。虽然祖业须微有，来得明时去不明。",
+      "structured": {
+        "trajectory_tags": [
+          "family_support_weak"
+        ],
+        "career_level": "偏弱",
+        "wealth_level": "中性",
+        "marriage_level": "偏弱",
+        "scores": {
+          "career": -3,
+          "wealth": 0,
+          "marriage": -2
+        }
+      }
+    },
+    "38": {
+      "total_qian": 38,
+      "total_display": "三两八钱",
+      "total_liang_decimal": 3.8,
+      "grade": "中",
+      "verse_canonical": "一身骨肉最清高，早入黉门姓氏标。待到年将三十六，蓝衫脱去换红袍。",
+      "structured": {
+        "trajectory_tags": [
+          "scholar_official"
+        ],
+        "career_level": "偏佳",
+        "wealth_level": "中性",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 1,
+          "wealth": 0,
+          "marriage": 0
+        },
+        "manual_override_summary": {
+          "career": "学业/名望上扬，约中年后显达",
+          "wealth": "名望强于即时财聚",
+          "marriage": "歌诀未直接点婚姻，按中性处理"
+        }
+      }
+    },
+    "39": {
+      "total_qian": 39,
+      "total_display": "三两九钱",
+      "total_liang_decimal": 3.9,
+      "grade": "中",
+      "verse_canonical": "此命终身运不通，劳劳作事尽皆空。苦心竭力成家计，到得那时在梦中。",
+      "structured": {
+        "trajectory_tags": [
+          "early_hardship"
+        ],
+        "career_level": "略弱",
+        "wealth_level": "偏弱",
+        "marriage_level": "中性",
+        "scores": {
+          "career": -1,
+          "wealth": -2,
+          "marriage": 0
+        }
+      }
+    },
+    "40": {
+      "total_qian": 40,
+      "total_display": "四两",
+      "total_liang_decimal": 4.0,
+      "grade": "中",
+      "verse_canonical": "平生衣禄是绵长，件件心中自主张。前面风霜多受过，后来必定享安康。",
+      "structured": {
+        "trajectory_tags": [
+          "early_hardship",
+          "midlate_better",
+          "self_made"
+        ],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 3,
+          "marriage": 0
+        }
+      }
+    },
+    "41": {
+      "total_qian": 41,
+      "total_display": "四两一钱",
+      "total_liang_decimal": 4.1,
+      "grade": "中",
+      "verse_canonical": "此命推来自不同，为人能干异凡庸。中年还有逍遥福，不比前时运未通。",
+      "structured": {
+        "trajectory_tags": [
+          "midlate_better"
+        ],
+        "career_level": "中性",
+        "wealth_level": "偏佳",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 1,
+          "marriage": 0
+        }
+      }
+    },
+    "42": {
+      "total_qian": 42,
+      "total_display": "四两二钱",
+      "total_liang_decimal": 4.2,
+      "grade": "中",
+      "verse_canonical": "得宽怀处且宽怀，何用双眉皱不开。若使中年命运济，那时名利一起来。",
+      "structured": {
+        "trajectory_tags": [
+          "midlate_better"
+        ],
+        "career_level": "偏佳",
+        "wealth_level": "中性",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 1,
+          "wealth": 0,
+          "marriage": 0
+        }
+      }
+    },
+    "43": {
+      "total_qian": 43,
+      "total_display": "四两三钱",
+      "total_liang_decimal": 4.3,
+      "grade": "中",
+      "verse_canonical": "为人心性最聪明，作事轩昂近贵人。衣禄一生天注定，不须劳碌是丰亨。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 3,
+          "marriage": 0
+        }
+      }
+    },
+    "44": {
+      "total_qian": 44,
+      "total_display": "四两四钱",
+      "total_liang_decimal": 4.4,
+      "grade": "中",
+      "verse_canonical": "万事由天莫苦求，须知福禄赖人修。当年财帛难如意，晚景欣然便不忧。",
+      "structured": {
+        "trajectory_tags": [
+          "midlate_better"
+        ],
+        "career_level": "中性",
+        "wealth_level": "偏佳",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 1,
+          "marriage": 0
+        }
+      }
+    },
+    "45": {
+      "total_qian": 45,
+      "total_display": "四两五钱",
+      "total_liang_decimal": 4.5,
+      "grade": "中",
+      "verse_canonical": "名利推求竟若何，前番辛苦后奔波。命中难养男和女，骨肉扶持也不多。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "中性",
+        "wealth_level": "略弱",
+        "marriage_level": "略弱",
+        "scores": {
+          "career": 0,
+          "wealth": -1,
+          "marriage": -1
+        },
+        "manual_override_summary": {
+          "career": "名利可求但过程辛苦反复",
+          "wealth": "先难后平，守成优于冒进",
+          "marriage": "婚育与家庭支持偏弱"
+        }
+      }
+    },
+    "46": {
+      "total_qian": 46,
+      "total_display": "四两六钱",
+      "total_liang_decimal": 4.6,
+      "grade": "中",
+      "verse_canonical": "东西南北尽皆通，出姓移居更觉隆。衣禄无穷无数定，中年晚景一般同。",
+      "structured": {
+        "trajectory_tags": [
+          "midlate_better",
+          "mobility"
+        ],
+        "career_level": "中性",
+        "wealth_level": "偏佳",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 1,
+          "marriage": 0
+        }
+      }
+    },
+    "47": {
+      "total_qian": 47,
+      "total_display": "四两七钱",
+      "total_liang_decimal": 4.7,
+      "grade": "中",
+      "verse_canonical": "此命推求旺末年，妻荣子贵自怡然。平生原有滔滔福，可卜财源若水泉。",
+      "structured": {
+        "trajectory_tags": [
+          "midlate_better"
+        ],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "很强",
+        "scores": {
+          "career": 0,
+          "wealth": 4,
+          "marriage": 3
+        },
+        "manual_override_summary": {
+          "career": "中晚年走强，整体偏稳",
+          "wealth": "财源较旺",
+          "marriage": "妻荣子贵，婚家表现佳"
+        }
+      }
+    },
+    "48": {
+      "total_qian": 48,
+      "total_display": "四两八钱",
+      "total_liang_decimal": 4.8,
+      "grade": "中",
+      "verse_canonical": "初年运道未曾亨，若是蹉跎再不兴。兄弟六亲皆无靠，一身事业晚年成。",
+      "structured": {
+        "trajectory_tags": [
+          "early_hardship",
+          "family_support_weak"
+        ],
+        "career_level": "略弱",
+        "wealth_level": "略弱",
+        "marriage_level": "略弱",
+        "scores": {
+          "career": -1,
+          "wealth": -1,
+          "marriage": -1
+        },
+        "manual_override_summary": {
+          "career": "早年受阻，晚成型",
+          "wealth": "前弱后稳",
+          "marriage": "歌诀未直接点婚姻，按中性偏弱处理"
+        }
+      }
+    },
+    "49": {
+      "total_qian": 49,
+      "total_display": "四两九钱",
+      "total_liang_decimal": 4.9,
+      "grade": "中",
+      "verse_canonical": "此命推来福不轻，自成自立显门庭。从来富贵人钦敬，使婢差奴过一生。",
+      "structured": {
+        "trajectory_tags": [
+          "self_made"
+        ],
+        "career_level": "偏佳",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 1,
+          "wealth": 3,
+          "marriage": 0
+        }
+      }
+    },
+    "50": {
+      "total_qian": 50,
+      "total_display": "五两",
+      "total_liang_decimal": 5.0,
+      "grade": "中",
+      "verse_canonical": "为利为名终日劳，中年福禄也多遭。老来自有财星照，不比前番目下高。",
+      "structured": {
+        "trajectory_tags": [
+          "midlate_better"
+        ],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 3,
+          "marriage": 0
+        }
+      }
+    },
+    "51": {
+      "total_qian": 51,
+      "total_display": "五两一钱",
+      "total_liang_decimal": 5.1,
+      "grade": "中",
+      "verse_canonical": "一世荣华事事通，不须劳碌自亨通。兄弟叔侄皆如意，家业成时福禄宏。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "略弱",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": -1,
+          "wealth": 4,
+          "marriage": 0
+        }
+      }
+    },
+    "52": {
+      "total_qian": 52,
+      "total_display": "五两二钱",
+      "total_liang_decimal": 5.2,
+      "grade": "中",
+      "verse_canonical": "一世亨通事事能，不须劳苦自然宁。宗族有光欣喜甚，家产丰盈自称心。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "中性",
+        "wealth_level": "中性",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 0,
+          "marriage": 0
+        }
+      }
+    },
+    "53": {
+      "total_qian": 53,
+      "total_display": "五两三钱",
+      "total_liang_decimal": 5.3,
+      "grade": "中",
+      "verse_canonical": "此格推来福泽宏，兴家立业在其中。一生衣食安排定，却是人间一福翁。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "偏佳",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 1,
+          "wealth": 3,
+          "marriage": 0
+        }
+      }
+    },
+    "54": {
+      "total_qian": 54,
+      "total_display": "五两四钱",
+      "total_liang_decimal": 5.4,
+      "grade": "中",
+      "verse_canonical": "此命推来厚且清，诗书满腹看功成。丰衣足食自然稳，正是人间有福人。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "中性",
+        "wealth_level": "偏佳",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 1,
+          "marriage": 0
+        }
+      }
+    },
+    "55": {
+      "total_qian": 55,
+      "total_display": "五两五钱",
+      "total_liang_decimal": 5.5,
+      "grade": "高",
+      "verse_canonical": "策马扬鞭争名利，少年作事费筹论。一朝福禄源源至，富贵荣华显六亲。",
+      "structured": {
+        "trajectory_tags": [
+          "midlate_better",
+          "family_support_weak"
+        ],
+        "career_level": "偏佳",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 1,
+          "wealth": 5,
+          "marriage": 0
+        }
+      }
+    },
+    "56": {
+      "total_qian": 56,
+      "total_display": "五两六钱",
+      "total_liang_decimal": 5.6,
+      "grade": "高",
+      "verse_canonical": "此格推来礼义通，一身福禄用无穷。甜酸苦辣皆尝过，滚滚财源盈而丰。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 2,
+          "marriage": 0
+        }
+      }
+    },
+    "57": {
+      "total_qian": 57,
+      "total_display": "五两七钱",
+      "total_liang_decimal": 5.7,
+      "grade": "高",
+      "verse_canonical": "福禄丰盈万事全，一身荣耀乐天年。名扬威震人争羡，此世逍遥宛似仙。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 3,
+          "marriage": 0
+        }
+      }
+    },
+    "58": {
+      "total_qian": 58,
+      "total_display": "五两八钱",
+      "total_liang_decimal": 5.8,
+      "grade": "高",
+      "verse_canonical": "平生衣食自然来，名利双全富贵偕。金榜题名登甲第，紫袍玉带走金阶。",
+      "structured": {
+        "trajectory_tags": [
+          "scholar_official"
+        ],
+        "career_level": "很强",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 4,
+          "wealth": 3,
+          "marriage": 0
+        },
+        "manual_override_summary": {
+          "career": "科名/体制路径极强",
+          "wealth": "名利双全",
+          "marriage": "歌诀未直接点婚姻，按中性处理"
+        }
+      }
+    },
+    "59": {
+      "total_qian": 59,
+      "total_display": "五两九钱",
+      "total_liang_decimal": 5.9,
+      "grade": "高",
+      "verse_canonical": "细推此格秀而清，必定才高学业成。甲第之中应有分，扬鞭走马显威荣。",
+      "structured": {
+        "trajectory_tags": [
+          "scholar_official"
+        ],
+        "career_level": "偏佳",
+        "wealth_level": "中性",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 1,
+          "wealth": 0,
+          "marriage": 0
+        }
+      }
+    },
+    "60": {
+      "total_qian": 60,
+      "total_display": "六两",
+      "total_liang_decimal": 6.0,
+      "grade": "高",
+      "verse_canonical": "一朝金榜快题名，显祖荣宗大器成。衣禄定然无欠缺，田园财帛更丰盈。",
+      "structured": {
+        "trajectory_tags": [
+          "scholar_official"
+        ],
+        "career_level": "很强",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 2,
+          "wealth": 5,
+          "marriage": 0
+        },
+        "manual_override_summary": {
+          "career": "科名与功业高度突出",
+          "wealth": "田产与财帛俱丰",
+          "marriage": "歌诀未直接点婚姻，按中性处理"
+        }
+      }
+    },
+    "61": {
+      "total_qian": 61,
+      "total_display": "六两一钱",
+      "total_liang_decimal": 6.1,
+      "grade": "高",
+      "verse_canonical": "不作朝中金榜客，定为世上大财翁。聪明天付经书熟，名显高科自是荣。",
+      "structured": {
+        "trajectory_tags": [
+          "scholar_official"
+        ],
+        "career_level": "很强",
+        "wealth_level": "偏佳",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 2,
+          "wealth": 1,
+          "marriage": 0
+        }
+      }
+    },
+    "62": {
+      "total_qian": 62,
+      "total_display": "六两二钱",
+      "total_liang_decimal": 6.2,
+      "grade": "高",
+      "verse_canonical": "此命生来福不穷，读书必定显亲宗。紫衣玉带为卿相，富贵荣华孰与同。",
+      "structured": {
+        "trajectory_tags": [
+          "scholar_official"
+        ],
+        "career_level": "偏佳",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 1,
+          "wealth": 3,
+          "marriage": 0
+        },
+        "manual_override_summary": {
+          "career": "仕途/显亲宗表现很强",
+          "wealth": "富贵显赫",
+          "marriage": "歌诀未直接点婚姻，按中性处理"
+        }
+      }
+    },
+    "63": {
+      "total_qian": 63,
+      "total_display": "六两三钱",
+      "total_liang_decimal": 6.3,
+      "grade": "高",
+      "verse_canonical": "命主为官福禄长，得来富贵实非常。名题雁塔传金榜，大显门庭天下扬。",
+      "structured": {
+        "trajectory_tags": [
+          "scholar_official"
+        ],
+        "career_level": "很强",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 3,
+          "wealth": 4,
+          "marriage": 0
+        }
+      }
+    },
+    "64": {
+      "total_qian": 64,
+      "total_display": "六两四钱",
+      "total_liang_decimal": 6.4,
+      "grade": "高",
+      "verse_canonical": "此格威权不可当，紫袍金带坐高堂。荣华富贵谁能及，万古留名姓氏扬。",
+      "structured": {
+        "trajectory_tags": [
+          "scholar_official"
+        ],
+        "career_level": "偏佳",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 1,
+          "wealth": 3,
+          "marriage": 0
+        },
+        "manual_override_summary": {
+          "career": "威权极盛，名位高",
+          "wealth": "荣华富贵极强",
+          "marriage": "歌诀未直接点婚姻，按中性处理"
+        }
+      }
+    },
+    "65": {
+      "total_qian": 65,
+      "total_display": "六两五钱",
+      "total_liang_decimal": 6.5,
+      "grade": "高",
+      "verse_canonical": "细推此命福非轻，富贵荣华孰与争。定国安邦人极品，威声显赫震寰瀛。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 4,
+          "marriage": 0
+        },
+        "manual_override_summary": {
+          "career": "位高权重，影响力大",
+          "wealth": "富贵顶级",
+          "marriage": "歌诀未直接点婚姻，按中性处理"
+        }
+      }
+    },
+    "66": {
+      "total_qian": 66,
+      "total_display": "六两六钱",
+      "total_liang_decimal": 6.6,
+      "grade": "高",
+      "verse_canonical": "此格人间一福人，堆金积玉满堂春。从来富贵有天定，金榜题名更显亲。",
+      "structured": {
+        "trajectory_tags": [
+          "scholar_official"
+        ],
+        "career_level": "偏佳",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 1,
+          "wealth": 4,
+          "marriage": 0
+        }
+      }
+    },
+    "67": {
+      "total_qian": 67,
+      "total_display": "六两七钱",
+      "total_liang_decimal": 6.7,
+      "grade": "高",
+      "verse_canonical": "此命生来福自宏，田园家业最高隆。平生衣禄盈丰足，一路荣华万事通。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 6,
+          "marriage": 0
+        }
+      }
+    },
+    "68": {
+      "total_qian": 68,
+      "total_display": "六两八钱",
+      "total_liang_decimal": 6.8,
+      "grade": "高",
+      "verse_canonical": "富贵由天莫苦求，万事家计不须谋。十年不比前番事，祖业根基千古留。",
+      "structured": {
+        "trajectory_tags": [
+          "family_support_weak"
+        ],
+        "career_level": "中性",
+        "wealth_level": "偏佳",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 1,
+          "marriage": 0
+        }
+      }
+    },
+    "69": {
+      "total_qian": 69,
+      "total_display": "六两九钱",
+      "total_liang_decimal": 6.9,
+      "grade": "高",
+      "verse_canonical": "君是人间福禄星，一生富贵众人钦。总然衣禄由天定，安享荣华过一生。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 7,
+          "marriage": 0
+        }
+      }
+    },
+    "70": {
+      "total_qian": 70,
+      "total_display": "七两",
+      "total_liang_decimal": 7.0,
+      "grade": "高",
+      "verse_canonical": "此命推来福不轻，何须愁虑苦劳心。荣华富贵已天定，正笏垂绅拜紫宸。",
+      "structured": {
+        "trajectory_tags": [],
+        "career_level": "中性",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 0,
+          "wealth": 3,
+          "marriage": 0
+        }
+      }
+    },
+    "71": {
+      "total_qian": 71,
+      "total_display": "七两一钱",
+      "total_liang_decimal": 7.1,
+      "grade": "高",
+      "verse_canonical": "此命生成大不同，公侯卿相在其中。一生自有逍遥福，富贵荣华极品隆。",
+      "structured": {
+        "trajectory_tags": [
+          "scholar_official"
+        ],
+        "career_level": "很强",
+        "wealth_level": "很强",
+        "marriage_level": "中性",
+        "scores": {
+          "career": 2,
+          "wealth": 4,
+          "marriage": 0
+        },
+        "manual_override_summary": {
+          "career": "公侯卿相级的极高成就象征",
+          "wealth": "极品荣华",
+          "marriage": "歌诀未直接点婚姻，按中性偏吉处理"
+        }
+      }
+    }
+  },
+  "edge_rules": {
+    "night_zi_hour": "23:00-23:59 视为次日；00:00-00:59 仍属子时，但日期已自然跨日。",
+    "leap_month": "闰月上半月（1-15）按本月，闰月下半月（16-30）按下月。",
+    "year_key": "采用农历年干支作为年骨重键，而不是节气换年的八字年柱。"
+  },
+  "output_template": {
+    "骨重明细": {
+      "年": "",
+      "月": "",
+      "日": "",
+      "时": ""
+    },
+    "总骨重": "",
+    "等级": "",
+    "原始歌诀": "",
+    "结构化分析": {
+      "事业": "",
+      "财运": "",
+      "婚姻": ""
+    },
+    "建议": ""
+  }
+}

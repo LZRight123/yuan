@@ -1,0 +1,7 @@
+interface:
+  display_name: "Yuan"
+  short_description: "六法合参的元·综合命理分析"
+  default_prompt: "Use $yuan to collect birth details, run the runnable destiny methods, and return only the final reading with profile confirmation, bone-weight verse, verdict, themed sections, a five-year window, and actionable advice. Do not include method summaries or intermediate analysis."
+
+policy:
+  allow_implicit_invocation: true

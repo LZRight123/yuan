@@ -1,0 +1,14 @@
+{
+  "input": {
+    "birth_datetime": "1990-01-01 08:00:00",
+    "location": {
+      "label": "Beijing, China",
+      "lat": 39.9042,
+      "lon": 116.4074,
+      "timezone": "Asia/Shanghai"
+    },
+    "house_system": "Placidus",
+    "zodiac_type": "Tropical",
+    "language": "zh-CN"
+  }
+}

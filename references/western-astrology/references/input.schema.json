@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AstrologyAnalysisInput",
+  "type": "object",
+  "required": [
+    "input"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "input": {
+      "type": "object",
+      "required": [
+        "birth_datetime",
+        "location"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "birth_datetime": {
+          "type": "string",
+          "description": "Birth datetime in local time or ISO-8601. If timezone offset is absent, location.timezone is required."
+        },
+        "location": {
+          "description": "Preferred: object with lat/lon/timezone. A place-name string is allowed only before normalization.",
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "object",
+              "required": [
+                "lat",
+                "lon",
+                "timezone"
+              ],
+              "additionalProperties": true,
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "lat": {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                },
+                "lon": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "timezone": {
+                  "type": "string"
+                },
+                "country": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "house_system": {
+          "type": "string",
+          "default": "Placidus"
+        },
+        "zodiac_type": {
+          "type": "string",
+          "default": "Tropical"
+        },
+        "language": {
+          "type": "string",
+          "default": "zh-CN"
+        }
+      }
+    }
+  }
+}

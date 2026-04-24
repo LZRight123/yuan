@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ZiweiChartFacts",
+  "type": "object",
+  "properties": {
+    "ming_palace": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "shen_palace": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "five_element_bureau": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "palaces": {
+      "type": "object",
+      "description": "Map of palace name to structured facts.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "branch": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stem": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "major_stars": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "auxiliary_stars": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "transformations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "three_way_four_orth": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "default": null
+    },
+    "grand_limits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "age_range": {
+            "type": "string"
+          },
+          "palace": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stars": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          }
+        },
+        "additionalProperties": true
+      },
+      "default": []
+    },
+    "annual_overlays": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    }
+  },
+  "additionalProperties": true
+}

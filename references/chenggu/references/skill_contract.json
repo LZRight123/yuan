@@ -1,0 +1,51 @@
+{
+  "name": "chenggu_analysis",
+  "runtime_skill_name": "chenggu-analysis",
+  "input": {
+    "one_of": [
+      {
+        "birth_datetime": "string",
+        "timezone": "string? (default Asia/Shanghai)",
+        "calendar_type": "gregorian|lunar (default gregorian)",
+        "gender": "string? (reserved)"
+      },
+      {
+        "lunar_components": {
+          "year_ganzhi": "string",
+          "month": "integer 1-12",
+          "day": "integer 1-30",
+          "hour_branch": "子|丑|寅|卯|辰|巳|午|未|申|酉|戌|亥",
+          "is_leap_month": "boolean? (default false)",
+          "night_zi_to_next_day": "boolean? (default true)"
+        }
+      }
+    ]
+  },
+  "derived_features": [
+    "year_weight_qian",
+    "month_weight_qian",
+    "day_weight_qian",
+    "hour_weight_qian",
+    "total_qian",
+    "total_display",
+    "grade"
+  ],
+  "rules": [
+    "权重查表规则",
+    "总骨重计算规则",
+    "骨重区间分类规则",
+    "歌诀标签提取规则",
+    "夜子时边界规则",
+    "闰月折算规则"
+  ],
+  "decision_flow": [
+    "解析出生时间或读取已归一化的农历组件",
+    "必要时将公历转换为农历",
+    "应用夜子时与闰月边界规则",
+    "查找年/月/日/时权重",
+    "计算 total_qian",
+    "匹配唯一 verse_profile",
+    "拆解为事业/财运/婚姻与 trajectory_tags",
+    "输出 JSON 与中文展示层"
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "chenggu_analysis input",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "birth_datetime": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string",
+          "default": "Asia/Shanghai"
+        },
+        "calendar_type": {
+          "type": "string",
+          "enum": [
+            "gregorian",
+            "lunar"
+          ],
+          "default": "gregorian"
+        },
+        "gender": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "birth_datetime"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "lunar_components": {
+          "type": "object",
+          "properties": {
+            "year_ganzhi": {
+              "type": "string"
+            },
+            "month": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            },
+            "day": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30
+            },
+            "hour_branch": {
+              "type": "string",
+              "enum": [
+                "子",
+                "丑",
+                "寅",
+                "卯",
+                "辰",
+                "巳",
+                "午",
+                "未",
+                "申",
+                "酉",
+                "戌",
+                "亥"
+              ]
+            },
+            "is_leap_month": {
+              "type": "boolean",
+              "default": false
+            },
+            "night_zi_to_next_day": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "required": [
+            "year_ganzhi",
+            "month",
+            "day",
+            "hour_branch"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "lunar_components"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}
